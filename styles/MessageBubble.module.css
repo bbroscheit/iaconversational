@@ -1,0 +1,17 @@
+.user {
+  align-self: flex-end;
+  background-color: #d1e7dd;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  max-width: 60%;
+}
+
+.bot {
+  align-self: flex-start;
+  background-color: #e2e3e5;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  max-width: 60%;
+}

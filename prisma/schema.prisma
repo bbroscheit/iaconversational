@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql" // o "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Character {
+  id            Int           @id @default(autoincrement())
+  name          String
+  avatar        String? // URL o path a la imagen
+  personality   String[] // array de rasgos
+  style         String? // "serio", "humorístico", etc.
+  memory        Json? // para guardar info importante
+  messages      Message[]
+  memoryEntries MemoryEntry[]
+  createdAt     DateTime      @default(now())
+}
+
+model Message {
+  id          Int       @id @default(autoincrement())
+  sender      String
+  content     String
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId Int
+  createdAt   DateTime  @default(now())
+  
+}
+
+model MemoryEntry {
+  id          Int       @id @default(autoincrement())
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId Int
+  content     String
+  topic       String? // opcional: podés agrupar recuerdos por tema
+  subject     String  // 👈 nuevo: "usuario", "personaje", "hermana", etc.
+  createdAt   DateTime  @default(now())
+}
+
+
