@@ -1,40 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Proyecto Chat con Memoria Dinámica
 
-## Getting Started
+Este proyecto es una API para manejar un chatbot basado en personajes con memoria dinámica, que permite guardar y recordar datos importantes tanto del usuario como del personaje, y responder en base a esa memoria.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Descripción
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+La API recibe mensajes del usuario y responde como un personaje ficticio con personalidad definida. Además, puede almacenar información importante que el usuario o el personaje quieran recordar, y utilizar esa memoria para enriquecer la conversación.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+Se conecta con un modelo de lenguaje local (por ejemplo Ollama) para generar las respuestas y administrar la memoria.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+---
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Características
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Gestión de mensajes entre usuario y personaje.
+- Comando `/recordar` para almacenar datos importantes.
+- Detección automática del sujeto del dato (usuario, personaje u otra persona).
+- Uso de memoria dinámica para respuestas más personalizadas.
+- Integración con modelo de lenguaje local vía API.
+- Persistencia de datos con Prisma y base de datos (ej. PostgreSQL).
+- Ordenamiento y recuperación histórica de mensajes.
+- Actualización del resumen de memoria del personaje.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Instalación y Uso
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### Requisitos previos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Node.js (v16 o superior recomendado)
+- Base de datos compatible (PostgreSQL, MySQL, SQLite, etc.) configurada
+- Prisma CLI instalado globalmente o localmente (`npm install prisma --save-dev`)
+- Servidor local del modelo de lenguaje (por ejemplo Ollama corriendo en `http://localhost:11434`)
 
-## Deploy on Vercel
+### Pasos para instalar
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clonar el repositorio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+   ```bash
+   git clone https://github.com/tuUsuario/mi-proyecto-chat.git
+   cd mi-proyecto-chat
+
