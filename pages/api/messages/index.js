@@ -1,29 +1,35 @@
 import { PrismaClient } from "@prisma/client";
+import  detectarSubject  from "../funciones/detectarSubject";
+import { buscarEnInternet } from "../funciones/buscarEnInternet";
+import { necesitaBusquedaWeb } from "../funciones/necesitaBusquedaWeb";
+import { buscarImagenesEnInternet } from "../funciones/buscarImagenesEnInternet";
+import { necesitaBusquedaDeImagen } from "../funciones/necesitaBusquedaDeImagen";
 
-function detectarSubject(datoImportante) {
-  const lower = datoImportante.toLowerCase();
 
-  if (lower.includes("yo ") || lower.includes("me ") || lower.includes("mi ")) {
-    return "usuario";
-  }
+// function detectarSubject(datoImportante) {
+//   const lower = datoImportante.toLowerCase();
 
-  if (
-    lower.includes("eres") ||
-    lower.includes("tú ") ||
-    lower.includes("vos ") ||
-    lower.includes("sos ")
-  ) {
-    return "personaje";
-  }
+//   if (lower.includes("yo ") || lower.includes("me ") || lower.includes("mi ")) {
+//     return "usuario";
+//   }
 
-  // Detectar sujeto por mención
-  const match = lower.match(/^([\w\s]+?):/); // ejemplo: "hermana: vive en Madrid"
-  if (match && match[1]) {
-    return match[1].trim();
-  }
+//   if (
+//     lower.includes("eres") ||
+//     lower.includes("tú ") ||
+//     lower.includes("vos ") ||
+//     lower.includes("sos ")
+//   ) {
+//     return "personaje";
+//   }
 
-  return "usuario"; // por defecto
-}
+//   // Detectar sujeto por mención
+//   const match = lower.match(/^([\w\s]+?):/); // ejemplo: "hermana: vive en Madrid"
+//   if (match && match[1]) {
+//     return match[1].trim();
+//   }
+
+//   return "usuario"; // por defecto
+// }
 
 const prisma = new PrismaClient();
 
@@ -110,6 +116,18 @@ export default async function handler(req, res) {
           .reverse()
           .join("\n");
 
+        let infoExtra = "";
+        let imagenesExtra = "";
+
+        // Verificar si necesita buscar información en la web o imágenes        
+        if (necesitaBusquedaWeb(content)) {
+          infoExtra = await buscarEnInternet(content);
+          }
+
+        if (necesitaBusquedaDeImagen(content)) {
+          imagenesExtra = await buscarImagenesEnInternet(content);
+        }
+
         // En tu prompt, usar la memoria dinámica (o combinar con resumen previo)
         const prompt = `
           Eres un personaje con la siguiente personalidad: ${character.personality.join(
@@ -119,11 +137,16 @@ export default async function handler(req, res) {
           Tu conocimiento previo sobre el usuario es:
           ${memoriaDinamica || character.memory || "Nada por ahora."}
 
+          ${infoExtra ? `Información encontrada en la web sobre el tema:\n${infoExtra}\n\n` : ""}
+
+          ${imagenesExtra ? `Imágenes relevantes encontradas:\n${imagenesExtra}\n\n` : ""}
+
           El usuario dice: "${content}"
 
           Tu respuesta debe ser un JSON con dos campos:
           - "respuesta": lo que quieres responderle al usuario.
           - "datoImportante": si hay algo nuevo que deberías recordar sobre el usuario, escríbelo aquí. Si no, déjalo vacío.
+          - Si hay imágenes en la información proporcionada, inclúyelas directamente como Markdown en tu respuesta (ej: ![texto](url)), sin cambiarlas a enlaces o texto plano.
 
           Responde SOLO el JSON, sin explicaciones.
         `.trim();
@@ -179,6 +202,8 @@ export default async function handler(req, res) {
           },
         });
 
+        console.log("Respuesta del bot:", botMessage.content);
+
         // 5. Si hay un nuevo dato importante, actualizar al personaje
         if (datoImportante && datoImportante.trim()) {
           const cleanDato = datoImportante.trim();
@@ -201,6 +226,7 @@ export default async function handler(req, res) {
             });
           }
         }
+
 
         return res.status(201).json([userMessage, botMessage]);
       } catch (error) {

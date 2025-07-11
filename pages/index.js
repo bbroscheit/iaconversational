@@ -65,6 +65,16 @@ export default function Home() {
         }),
       });
 
+      // const res = await fetch("/api/messages-gemini", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     sender: "Usuario",
+      //     content: input,
+      //     characterId: selectedCharacter.id,
+      //   }),
+      // });
+
       const newMessages = await res.json();
 
       const formattedMessages = Array.isArray(newMessages)

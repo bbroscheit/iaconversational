@@ -30,7 +30,7 @@ Se conecta con un modelo de lenguaje local (por ejemplo Ollama) para generar las
 ### Requisitos previos
 
 - Node.js (v16 o superior recomendado)
-- Base de datos compatible (PostgreSQL, MySQL, SQLite, etc.) configurada
+- Base de datos utilizada - PostgreSQL
 - Prisma CLI instalado globalmente o localmente (`npm install prisma --save-dev`)
 - Servidor local del modelo de lenguaje (por ejemplo Ollama corriendo en `http://localhost:11434`)
 
