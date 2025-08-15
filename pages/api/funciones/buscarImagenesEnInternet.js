@@ -14,27 +14,28 @@ export async function buscarImagenesEnInternet(query) {
 
     const data = await res.json();
     const resultados = data.results || [];
-    console.log("Resultados de búsqueda de imágenes:", res);
-    // Filtrar solo URLs directas a imágenes que no pasen por proxys
-    const imagenesValidas = resultados.filter((r) => {
-      try {
-        const url = new URL(r.url);
-        const extensionValida = url.pathname.match(/\.(jpeg|jpg|png|gif|webp)$/i);
-        const dominioValido = !url.hostname.includes("duckduckgo.com") &&
-                              !url.hostname.includes("googleusercontent.com") &&
-                              !url.hostname.includes("bing.net")&&
-                              !url.hostname.includes("upload.wikimedia")&&
-                              !url.hostname.includes("pbs.twimg")&&
-                              !url.hostname.includes("example");
-        return extensionValida && dominioValido;
-      } catch {
-        return false;
+
+    const urlsValidas = [];
+    for (const r of resultados) {
+      const url = r.url;
+      if (
+        url.match(/^https?:\/\/.+\.(jpeg|jpg|png|gif|webp)$/i) &&
+        !url.includes("duckduckgo.com") &&
+        !url.includes("googleusercontent.com") &&
+        !url.includes("bing.net") &&
+        !url.includes("example") &&
+        !url.includes("wikimedia")
+      ) {
+        const esValida = await validarUrlImagen(url);
+        if (esValida) urlsValidas.push({ title: r.title, url });
+        if (urlsValidas.length >= 3) break;
       }
-    });
-    console.log("Imágenes válidas encontradas:", imagenesValidas);
-    return imagenesValidas.slice(0, 3).map((r) => `![${r.title}](${r.url})`).join("\n\n");
+    }
+
+    return urlsValidas; // Devolvemos un array de objetos {title, url}
   } catch (error) {
     console.error("Error en búsqueda de imágenes:", error);
-    return "No se pudo obtener imágenes.";
+    return [];
   }
 }
+

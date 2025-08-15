@@ -1,35 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import  detectarSubject  from "../funciones/detectarSubject";
+import detectarSubject from "../funciones/detectarSubject";
 import { buscarEnInternet } from "../funciones/buscarEnInternet";
 import { necesitaBusquedaWeb } from "../funciones/necesitaBusquedaWeb";
 import { buscarImagenesEnInternet } from "../funciones/buscarImagenesEnInternet";
-import { necesitaBusquedaDeImagen } from "../funciones/necesitaBusquedaDeImagen";
-
-
-// function detectarSubject(datoImportante) {
-//   const lower = datoImportante.toLowerCase();
-
-//   if (lower.includes("yo ") || lower.includes("me ") || lower.includes("mi ")) {
-//     return "usuario";
-//   }
-
-//   if (
-//     lower.includes("eres") ||
-//     lower.includes("tú ") ||
-//     lower.includes("vos ") ||
-//     lower.includes("sos ")
-//   ) {
-//     return "personaje";
-//   }
-
-//   // Detectar sujeto por mención
-//   const match = lower.match(/^([\w\s]+?):/); // ejemplo: "hermana: vive en Madrid"
-//   if (match && match[1]) {
-//     return match[1].trim();
-//   }
-
-//   return "usuario"; // por defecto
-// }
+import extraerYDecodificarURL from "../funciones/extraerYDecodificarURL";
 
 const prisma = new PrismaClient();
 
@@ -117,16 +91,39 @@ export default async function handler(req, res) {
           .join("\n");
 
         let infoExtra = "";
+
+        const necesitaImagen =
+          content.toLowerCase().includes("imagen") ||
+          content.toLowerCase().includes("foto") ||
+          content.toLowerCase().includes("imagenes") ||
+          content.toLowerCase().includes("fotos");
+
         let imagenesExtra = "";
 
-        // Verificar si necesita buscar información en la web o imágenes        
+        // Verificar si necesita buscar información en la web o imágenes
         if (necesitaBusquedaWeb(content)) {
           infoExtra = await buscarEnInternet(content);
-          }
-
-        if (necesitaBusquedaDeImagen(content)) {
-          imagenesExtra = await buscarImagenesEnInternet(content);
         }
+
+        console.log("Info extra encontrada:", necesitaImagen);
+        if (necesitaImagen) {
+          const imagenes = await buscarImagenesEnInternet(content);
+          if (imagenes.length) {
+            imagenesExtra = imagenes
+              .slice(0, 3)
+              .map((img, i) => {
+                const cleanUrl = extraerYDecodificarURL(img.url);
+                return `![Imagen ${i + 1}](${cleanUrl})`;
+              })
+              .join("\n");
+          } else {
+            imagenesExtra = "No se encontraron imágenes relevantes.";
+          }
+        }
+
+        // if (necesitaBusquedaDeImagen(content)) {
+        //   imagenesExtra = await buscarImagenesEnInternet(content);
+        // }
 
         // En tu prompt, usar la memoria dinámica (o combinar con resumen previo)
         const prompt = `
@@ -137,9 +134,17 @@ export default async function handler(req, res) {
           Tu conocimiento previo sobre el usuario es:
           ${memoriaDinamica || character.memory || "Nada por ahora."}
 
-          ${infoExtra ? `Información encontrada en la web sobre el tema:\n${infoExtra}\n\n` : ""}
+          ${
+            infoExtra
+              ? `Información encontrada en la web:\n${infoExtra}\n\n`
+              : `No encontraste resultados útiles en la web. Si no sabes la respuesta, dilo con sinceridad.`
+          }
 
-          ${imagenesExtra ? `Imágenes relevantes encontradas:\n${imagenesExtra}\n\n` : ""}
+          ${
+            imagenesExtra
+              ? `Imágenes relevantes encontradas:\n${imagenesExtra}\n\n`
+              : ""
+          }
 
           El usuario dice: "${content}"
 
@@ -226,7 +231,6 @@ export default async function handler(req, res) {
             });
           }
         }
-
 
         return res.status(201).json([userMessage, botMessage]);
       } catch (error) {

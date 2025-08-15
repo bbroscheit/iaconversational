@@ -1,4 +1,5 @@
 export function necesitaBusquedaDeImagen(texto) {
+  console.log("necesitaBusquedaDeImagen:", texto);
   const lower = texto.toLowerCase();
   const keywords = [
     "imagen de", 
